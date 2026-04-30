@@ -263,10 +263,9 @@ jobs:
 
       - name: Setup MacOS Kernel
         run: |
-          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-macos-universal-v1.19.24.zip -o assets/mihomo_macos.zip
-          unzip assets/mihomo_macos.zip -d assets/temp_macos
-          mv assets/temp_macos/mihomo-macos-universal assets/mihomo_TianQue_macos
-          rm -rf assets/temp_macos assets/mihomo_macos.zip
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-darwin-amd64-v1.19.24.gz -o assets/mihomo_macos.gz
+          gunzip -c assets/mihomo_macos.gz > assets/mihomo_TianQue_macos
+          rm assets/mihomo_macos.gz
 
       - name: Build MacOS (Universal)
         run: flutter build macos --release
@@ -320,7 +319,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libayatana-appindicator3-dev
 
       - name: Get Flutter dependencies
         run: flutter pub get
