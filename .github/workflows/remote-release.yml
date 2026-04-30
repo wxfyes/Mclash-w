@@ -146,16 +146,13 @@ jobs:
       - name: Package Windows
         run: |
           Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath MClash-Windows-x64.zip
-          Copy-Item -Path build/windows/x64/runner/Release/*.exe -Destination MClash-Windows-Standalone.exe
         shell: powershell
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mclash-windows-release
-          path: |
-            MClash-Windows-x64.zip
-            MClash-Windows-Standalone.exe
+          path: MClash-Windows-x64.zip
 
       - name: Create Installer Script
         shell: bash
@@ -405,7 +402,6 @@ jobs:
           artifacts: |
             release_artifacts/mclash-android-apks/*.apk
             release_artifacts/mclash-windows-release/MClash-Windows-x64.zip
-            release_artifacts/mclash-windows-release/MClash-Windows-Standalone.exe
             release_artifacts/mclash-windows-installer/*.exe
             release_artifacts/mclash-macos-release/MClash-MacOS-Universal.zip
             release_artifacts/mclash-macos-release/MClash-MacOS-Universal.dmg
