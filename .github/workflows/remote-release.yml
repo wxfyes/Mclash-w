@@ -185,17 +185,20 @@ jobs:
 
       - name: Package MacOS (ZIP & DMG)
         run: |
-          # 进入发布目录
+          # 1. 打包 .app 为 ZIP
+          # 使用通配符并直接在目录内操作
           cd build/macos/Build/Products/Release/
-          # 1. 打包所有 .app 文件为 ZIP (使用通配符解决大小写问题)
           zip -r ../../../../MClash-MacOS-Universal.zip *.app
           
-          # 2. 尝试制作 .dmg
-          cd ../../../../
+          # 2. 回到根目录 (5层: Release -> Products -> Build -> macos -> build -> root)
+          cd ../../../../../
+          
+          # 3. 尝试制作 .dmg
           npm install -g appdmg
           
-          # 动态获取 .app 的真实名称
+          # 动态获取 .app 的真实名称 (确保在根目录执行)
           APP_NAME=$(ls build/macos/Build/Products/Release/ | grep .app | head -n 1)
+          echo "Found App: $APP_NAME"
           
           # 检查是否有图标
           ICON_CONFIG='"icon": "assets/icon.icns",'
