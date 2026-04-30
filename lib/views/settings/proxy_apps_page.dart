@@ -109,10 +109,12 @@ class ProxyAppsPage extends StatelessWidget {
                             app['packageName']!,
                             style: TextStyle(fontSize: 11, color: context.theme.colorScheme.outline),
                           ),
-                          trailing: Checkbox(
-                            value: isSelected,
-                            onChanged: null, // 统一由 ListTile 的 onTap 处理，防止双重触发导致状态抵消
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          trailing: IgnorePointer(
+                            child: Checkbox(
+                              value: isSelected,
+                              onChanged: (_) {}, // 保持启用状态，但事件由外层 ListTile 统一处理
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            ),
                           ),
                         ),
                       );
