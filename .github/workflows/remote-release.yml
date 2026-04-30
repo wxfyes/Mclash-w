@@ -5,22 +5,32 @@ on:
     inputs:
       build_android:
         description: 'Build Android'
+        type: boolean
         required: true
-        default: 'true'
+        default: true
       build_windows:
         description: 'Build Windows'
+        type: boolean
         required: true
-        default: 'true'
+        default: true
       build_macos:
         description: 'Build MacOS'
+        type: boolean
         required: true
-        default: 'true'
+        default: true
       build_linux:
         description: 'Build Linux'
+        type: boolean
         required: true
-        default: 'true'
+        default: true
+      publish_release:
+        description: 'Publish to Public Repo'
+        type: boolean
+        required: true
+        default: true
       branch:
         description: 'Source Branch'
+        type: string
         required: true
         default: 'main'
 
@@ -32,7 +42,7 @@ jobs:
   # 1. Android Build Job
   # =================================================================================================
   build-android:
-    if: ${{ github.event.inputs.build_android == 'true' }}
+    if: ${{ github.event.inputs.build_android }}
     name: Build Android
     runs-on: ubuntu-latest
     steps:
@@ -92,7 +102,7 @@ jobs:
   # 2. Windows Build Job
   # =================================================================================================
   build-windows:
-    if: ${{ github.event.inputs.build_windows == 'true' }}
+    if: ${{ github.event.inputs.build_windows }}
     name: Build Windows
     runs-on: windows-latest
     steps:
@@ -226,7 +236,7 @@ jobs:
   # 3. macOS Build Job
   # =================================================================================================
   build-macos:
-    if: ${{ github.event.inputs.build_macos == 'true' }}
+    if: ${{ github.event.inputs.build_macos }}
     name: Build MacOS
     runs-on: macos-latest
     steps:
@@ -291,7 +301,7 @@ jobs:
   # 4. Linux Build Job
   # =================================================================================================
   build-linux:
-    if: ${{ github.event.inputs.build_linux == 'true' }}
+    if: ${{ github.event.inputs.build_linux }}
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
@@ -339,6 +349,7 @@ jobs:
   # 5. Release Job
   # =================================================================================================
   release:
+    if: ${{ github.event.inputs.publish_release }}
     name: Publish Release to Public Repo
     needs: [build-android, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
