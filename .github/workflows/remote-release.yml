@@ -129,14 +129,19 @@ jobs:
 
       - name: Package Windows
         run: |
+          # 1. 打包完整版 ZIP (含所有 DLL)
           Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath MClash-Windows-x64.zip
+          # 2. 提取独立 EXE (方便覆盖)
+          Copy-Item -Path build/windows/x64/runner/Release/mclash.exe -Destination MClash-Windows-Standalone.exe
         shell: powershell
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mclash-windows-release
-          path: MClash-Windows-x64.zip
+          path: |
+            MClash-Windows-x64.zip
+            MClash-Windows-Standalone.exe
 
   # =================================================================================================
   # 3. macOS Build Job
@@ -175,19 +180,35 @@ jobs:
           curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
           curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
 
-      - name: Build MacOS
-        run: flutter build macos --release
+      - name: Build MacOS (Universal)
+        run: flutter build macos --release --target-platform macos-x64,macos-arm64
 
-      - name: Package MacOS
+      - name: Package MacOS (ZIP & DMG)
         run: |
           cd build/macos/Build/Products/Release/
+          # 1. 打包 .app 为 ZIP
           zip -r ../../../../MClash-MacOS-Universal.zip MClash.app
+          # 2. 制作 .dmg
+          cd ../../../../
+          npm install -g appdmg
+          echo '{
+            "title": "MClash",
+            "icon": "assets/icon.icns",
+            "background": "",
+            "contents": [
+              { "x": 448, "y": 344, "type": "link", "path": "/Applications" },
+              { "x": 192, "y": 344, "type": "file", "path": "build/macos/Build/Products/Release/MClash.app" }
+            ]
+          }' > appdmg.json
+          appdmg appdmg.json MClash-MacOS-Universal.dmg || true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mclash-macos-release
-          path: MClash-MacOS-Universal.zip
+          path: |
+            MClash-MacOS-Universal.zip
+            MClash-MacOS-Universal.dmg
 
   # =================================================================================================
   # 4. Linux Build Job
@@ -280,7 +301,9 @@ jobs:
           artifacts: |
             release_artifacts/mclash-android-apks/*.apk
             release_artifacts/mclash-windows-release/MClash-Windows-x64.zip
+            release_artifacts/mclash-windows-release/MClash-Windows-Standalone.exe
             release_artifacts/mclash-macos-release/MClash-MacOS-Universal.zip
+            release_artifacts/mclash-macos-release/MClash-MacOS-Universal.dmg
             release_artifacts/mclash-linux-release/MClash-Linux-x64.tar.gz
           allowUpdates: true
           replacesArtifacts: true
