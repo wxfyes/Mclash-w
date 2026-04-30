@@ -105,6 +105,13 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           token: ${{ secrets.SOURCE_REPO_TOKEN }}
 
+      - name: Get version from pubspec
+        shell: bash
+        run: |
+          VERSION=$(grep 'version: ' pubspec.yaml | sed 's/version: //')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -168,6 +175,13 @@ jobs:
           repository: wangn9900/Mclash
           ref: ${{ github.event.inputs.branch }}
           token: ${{ secrets.SOURCE_REPO_TOKEN }}
+
+      - name: Get version from pubspec
+        shell: bash
+        run: |
+          VERSION=$(grep 'version: ' pubspec.yaml | sed 's/version: //')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
