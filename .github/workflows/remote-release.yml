@@ -131,8 +131,8 @@ jobs:
         run: |
           # 1. 打包完整版 ZIP (含所有 DLL)
           Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath MClash-Windows-x64.zip
-          # 2. 提取独立 EXE (方便覆盖)
-          Copy-Item -Path build/windows/x64/runner/Release/mclash.exe -Destination MClash-Windows-Standalone.exe
+          # 2. 提取程序 EXE (注意：此文件需配合 DLL 运行)
+          Copy-Item -Path build/windows/x64/runner/Release/*.exe -Destination MClash-Windows-Standalone.exe
         shell: powershell
 
       - name: Upload Artifact
@@ -185,13 +185,19 @@ jobs:
 
       - name: Package MacOS (ZIP & DMG)
         run: |
+          # 进入发布目录
           cd build/macos/Build/Products/Release/
-          # 1. 打包 .app 为 ZIP
-          zip -r ../../../../MClash-MacOS-Universal.zip MClash.app
-          # 2. 制作 .dmg
+          # 1. 打包所有 .app 文件为 ZIP (使用通配符解决大小写问题)
+          zip -r ../../../../MClash-MacOS-Universal.zip *.app
+          
+          # 2. 尝试制作 .dmg
           cd ../../../../
           npm install -g appdmg
-          # 检查是否有图标，没有则移除配置
+          
+          # 动态获取 .app 的真实名称
+          APP_NAME=$(ls build/macos/Build/Products/Release/ | grep .app | head -n 1)
+          
+          # 检查是否有图标
           ICON_CONFIG='"icon": "assets/icon.icns",'
           if [ ! -f "assets/icon.icns" ]; then ICON_CONFIG=""; fi
           
@@ -201,10 +207,12 @@ jobs:
             \"background\": \"\",
             \"contents\": [
               { \"x\": 448, \"y\": 344, \"type\": \"link\", \"path\": \"/Applications\" },
-              { \"x\": 192, \"y\": 344, \"type\": \"file\", \"path\": \"build/macos/Build/Products/Release/MClash.app\" }
+              { \"x\": 192, \"y\": 344, \"type\": \"file\", \"path\": \"build/macos/Build/Products/Release/$APP_NAME\" }
             ]
           }" > appdmg.json
-          appdmg appdmg.json MClash-MacOS-Universal.dmg || true
+          
+          # 运行打包，如果失败不阻塞后续步骤
+          appdmg appdmg.json MClash-MacOS-Universal.dmg || echo "DMG creation failed, skipping..."
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -213,6 +221,7 @@ jobs:
           path: |
             MClash-MacOS-Universal.zip
             MClash-MacOS-Universal.dmg
+          if-no-files-found: warn
 
   # =================================================================================================
   # 4. Linux Build Job
