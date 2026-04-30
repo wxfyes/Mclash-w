@@ -81,12 +81,15 @@ jobs:
 
       - name: Setup Android Kernel
         run: |
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p android/app/src/main/jniLibs/armeabi-v7a
+          mkdir -p android/app/src/main/jniLibs/x86_64
           curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-arm64-v8-v1.19.24.gz -o assets/mihomo_arm64.gz
           curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-armv7-v1.19.24.gz -o assets/mihomo_armv7.gz
-          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-x86_64-v1.19.24.gz -o assets/mihomo_x86_64.gz
-          gunzip -c assets/mihomo_arm64.gz > assets/mihomo_TianQue_arm64-v8a
-          gunzip -c assets/mihomo_armv7.gz > assets/mihomo_TianQue_armeabi-v7a
-          gunzip -c assets/mihomo_x86_64.gz > assets/mihomo_TianQue_x86_64
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-amd64-v1.19.24.gz -o assets/mihomo_x86_64.gz
+          gunzip -c assets/mihomo_arm64.gz > android/app/src/main/jniLibs/arm64-v8a/libmihomo.so
+          gunzip -c assets/mihomo_armv7.gz > android/app/src/main/jniLibs/armeabi-v7a/libmihomo.so
+          gunzip -c assets/mihomo_x86_64.gz > android/app/src/main/jniLibs/x86_64/libmihomo.so
           rm assets/*.gz
 
       - name: Build Android APK
@@ -132,8 +135,11 @@ jobs:
           curl.exe -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-windows-amd64-v1.19.24.zip -o assets/mihomo_win.zip
           Expand-Archive -Path assets/mihomo_win.zip -DestinationPath assets/temp_win
           Move-Item -Path assets/temp_win/mihomo-windows-amd64.exe -Destination assets/mihomo_TianQue.exe
-          Remove-Item -Recurse -Force assets/temp_win
-          Remove-Item assets/mihomo_win.zip
+          Remove-Item -Path assets/mihomo_win.zip, assets/temp_win -Recurse
+          curl.exe -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
+          curl.exe -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
+          curl.exe -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
+        shell: powershell
 
       - name: Build Windows
         run: flutter build windows --release
@@ -261,11 +267,17 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Setup MacOS Kernel
+      - name: Setup MacOS Assets (Universal Kernel)
         run: |
-          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-darwin-amd64-v1.19.24.gz -o assets/mihomo_macos.gz
-          gunzip -c assets/mihomo_macos.gz > assets/mihomo_TianQue_macos
-          rm assets/mihomo_macos.gz
+          mkdir -p assets
+          gunzip assets/mihomo_intel.gz || true
+          gunzip assets/mihomo_arm.gz || true
+          chmod +x assets/mihomo_intel assets/mihomo_arm
+          lipo -create assets/mihomo_intel assets/mihomo_arm -output assets/mihomo_TianQue
+          rm assets/mihomo_intel assets/mihomo_arm
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
 
       - name: Build MacOS (Universal)
         run: flutter build macos --release
@@ -324,11 +336,16 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Setup Linux Kernel
+      - name: Setup Linux Assets (Kernel & Rules)
         run: |
+          mkdir -p assets
           curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-linux-amd64-v1.19.24.gz -o assets/mihomo_linux.gz
-          gunzip -c assets/mihomo_linux.gz > assets/mihomo_TianQue_linux
-          rm assets/mihomo_linux.gz
+          gunzip assets/mihomo_linux.gz
+          mv assets/mihomo_linux assets/mihomo_TianQue
+          chmod +x assets/mihomo_TianQue
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
 
       - name: Build Linux
         run: flutter build linux --release
