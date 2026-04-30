@@ -37,12 +37,10 @@ jobs:
     name: Build Android
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code from wangn9900
+      - name: Checkout local code
         uses: actions/checkout@v4
         with:
-          repository: wangn9900/Mclash
           ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.SOURCE_REPO_TOKEN }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -98,12 +96,10 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     steps:
-      - name: Checkout code from wangn9900
+      - name: Checkout local code
         uses: actions/checkout@v4
         with:
-          repository: wangn9900/Mclash
           ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.SOURCE_REPO_TOKEN }}
 
       - name: Get version from pubspec
         shell: bash
@@ -179,7 +175,31 @@ jobs:
           WizardStyle=modern
 
           [Languages]
-          Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+          Name: "english"; MessagesFile: "compiler:Default.isl"
+
+          [Messages]
+          english.WelcomeLabel1=欢迎使用 MClash 安装向导
+          english.WelcomeLabel2=本程序将在您的电脑上安装 MClash。%n%n建议您在继续之前关闭所有其他应用程序。
+          english.WizardSelectDir=选择安装位置
+          english.SelectDirDesc=您想将 MClash 安装到哪里？
+          english.SelectDirLabel3=安装向导将把 MClash 安装到以下文件夹中。
+          english.SelectDirBrowseLabel=点击“下一步”继续。如果您想选择其他文件夹，请点击“浏览”。
+          english.DiskSpaceMBLabel=至少需要 [mb] MB 的磁盘空间。
+          english.ButtonNext=下一步(&N) >
+          english.ButtonBack=< 上一步(&B)
+          english.ButtonInstall=安装(&I)
+          english.ButtonCancel=取消
+          english.WizardReady=准备安装
+          english.ReadyLabel1=安装向导现在准备开始在您的电脑上安装 MClash。
+          english.ReadyLabel2a=点击“安装”继续安装。
+          english.WizardInstalling=正在安装
+          english.InstallingLabel=安装向导正在安装 MClash，请稍候。
+          english.WizardSetupCompleted=安装完成
+          english.FinishedHeadingLabel=MClash 安装向导完成
+          english.FinishedLabel=安装向导已在您的电脑上安装了 MClash。您可以点击桌面图标来运行它。
+          english.ClickFinish=点击“完成”退出安装向导。
+          english.ButtonFinish=完成(&F)
+          english.CreateDesktopIcon=创建桌面快捷方式
 
           [Tasks]
           Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
@@ -217,12 +237,10 @@ jobs:
     name: Build MacOS
     runs-on: macos-latest
     steps:
-      - name: Checkout code from wangn9900
+      - name: Checkout local code
         uses: actions/checkout@v4
         with:
-          repository: wangn9900/Mclash
           ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.SOURCE_REPO_TOKEN }}
 
       - name: Get version from pubspec
         shell: bash
@@ -307,12 +325,10 @@ jobs:
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code from wangn9900
+      - name: Checkout local code
         uses: actions/checkout@v4
         with:
-          repository: wangn9900/Mclash
           ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.SOURCE_REPO_TOKEN }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -360,12 +376,10 @@ jobs:
     needs: [build-android, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code from wangn9900
+      - name: Checkout local code
         uses: actions/checkout@v4
         with:
-          repository: wangn9900/Mclash
           ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.SOURCE_REPO_TOKEN }}
 
       - name: Extract Version
         id: extract_version
