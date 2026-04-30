@@ -143,6 +143,17 @@ jobs:
             MClash-Windows-x64.zip
             MClash-Windows-Standalone.exe
 
+      - name: Build Installer (Inno Setup)
+        run: |
+          iscc /dMyAppVersion=${{ env.VERSION }} windows/runner/installer.iss
+        shell: pwsh
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mclash-windows-installer
+          path: build/windows/installer/*.exe
+
   # =================================================================================================
   # 3. macOS Build Job
   # =================================================================================================
@@ -318,6 +329,7 @@ jobs:
             release_artifacts/mclash-android-apks/*.apk
             release_artifacts/mclash-windows-release/MClash-Windows-x64.zip
             release_artifacts/mclash-windows-release/MClash-Windows-Standalone.exe
+            release_artifacts/mclash-windows-installer/*.exe
             release_artifacts/mclash-macos-release/MClash-MacOS-Universal.zip
             release_artifacts/mclash-macos-release/MClash-MacOS-Universal.dmg
             release_artifacts/mclash-linux-release/MClash-Linux-x64.tar.gz
