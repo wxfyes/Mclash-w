@@ -115,13 +115,13 @@ jobs:
 
       - name: Setup Windows Assets (Kernel & Rules)
         run: |
-          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-windows-amd64-v1.19.24.zip -o assets/mihomo_win.zip
+          curl.exe -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-windows-amd64-v1.19.24.zip -o assets/mihomo_win.zip
           Expand-Archive -Path assets/mihomo_win.zip -DestinationPath assets/temp_win
           Move-Item -Path assets/temp_win/mihomo-windows-amd64.exe -Destination assets/mihomo_TianQue.exe
           Remove-Item -Path assets/mihomo_win.zip, assets/temp_win -Recurse
-          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
-          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
-          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
+          curl.exe -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
+          curl.exe -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
+          curl.exe -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
         shell: powershell
 
       - name: Build Windows
