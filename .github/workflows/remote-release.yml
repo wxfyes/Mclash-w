@@ -81,9 +81,9 @@ jobs:
 
       - name: Setup Android Kernel
         run: |
-          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-arm64-v8a-v1.19.24.gz -o assets/mihomo_arm64.gz
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-arm64-v8-v1.19.24.gz -o assets/mihomo_arm64.gz
           curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-armv7-v1.19.24.gz -o assets/mihomo_armv7.gz
-          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-amd64-v1.19.24.gz -o assets/mihomo_x86_64.gz
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-android-x86_64-v1.19.24.gz -o assets/mihomo_x86_64.gz
           gunzip -c assets/mihomo_arm64.gz > assets/mihomo_TianQue_arm64-v8a
           gunzip -c assets/mihomo_armv7.gz > assets/mihomo_TianQue_armeabi-v7a
           gunzip -c assets/mihomo_x86_64.gz > assets/mihomo_TianQue_x86_64
