@@ -181,7 +181,7 @@ jobs:
           curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
 
       - name: Build MacOS (Universal)
-        run: flutter build macos --release --target-platform macos-x64,macos-arm64
+        run: flutter build macos --release
 
       - name: Package MacOS (ZIP & DMG)
         run: |
@@ -191,15 +191,19 @@ jobs:
           # 2. 制作 .dmg
           cd ../../../../
           npm install -g appdmg
-          echo '{
-            "title": "MClash",
-            "icon": "assets/icon.icns",
-            "background": "",
-            "contents": [
-              { "x": 448, "y": 344, "type": "link", "path": "/Applications" },
-              { "x": 192, "y": 344, "type": "file", "path": "build/macos/Build/Products/Release/MClash.app" }
+          # 检查是否有图标，没有则移除配置
+          ICON_CONFIG='"icon": "assets/icon.icns",'
+          if [ ! -f "assets/icon.icns" ]; then ICON_CONFIG=""; fi
+          
+          echo "{
+            \"title\": \"MClash\",
+            $ICON_CONFIG
+            \"background\": \"\",
+            \"contents\": [
+              { \"x\": 448, \"y\": 344, \"type\": \"link\", \"path\": \"/Applications\" },
+              { \"x\": 192, \"y\": 344, \"type\": \"file\", \"path\": \"build/macos/Build/Products/Release/MClash.app\" }
             ]
-          }' > appdmg.json
+          }" > appdmg.json
           appdmg appdmg.json MClash-MacOS-Universal.dmg || true
 
       - name: Upload Artifact
