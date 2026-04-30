@@ -270,8 +270,10 @@ jobs:
       - name: Setup MacOS Assets (Universal Kernel)
         run: |
           mkdir -p assets
-          gunzip assets/mihomo_intel.gz || true
-          gunzip assets/mihomo_arm.gz || true
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-darwin-amd64-v1.19.24.gz -o assets/mihomo_intel.gz
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-darwin-arm64-v1.19.24.gz -o assets/mihomo_arm.gz
+          gunzip assets/mihomo_intel.gz
+          gunzip assets/mihomo_arm.gz
           chmod +x assets/mihomo_intel assets/mihomo_arm
           lipo -create assets/mihomo_intel assets/mihomo_arm -output assets/mihomo_TianQue
           rm assets/mihomo_intel assets/mihomo_arm
