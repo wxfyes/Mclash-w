@@ -150,6 +150,54 @@ jobs:
             MClash-Windows-x64.zip
             MClash-Windows-Standalone.exe
 
+      - name: Create Installer Script
+        shell: bash
+        run: |
+          mkdir -p windows/runner
+          cat << 'EOF' > windows/runner/installer.iss
+          #define MyAppName "MClash"
+          #ifndef MyAppVersion
+            #define MyAppVersion "1.0.1"
+          #endif
+          #define MyAppPublisher "TianQue"
+          #define MyAppExeName "mclash.exe"
+          #define MyBuildPath "..\..\build\windows\x64\runner\Release"
+
+          [Setup]
+          AppId={{E6A1B2C3-D4E5-4F6A-8B9C-0D1E2F3A4B5C}
+          AppName={#MyAppName}
+          AppVersion={#MyAppVersion}
+          AppPublisher={#MyAppPublisher}
+          DefaultDirName={autopf}\{#MyAppName}
+          DisableProgramGroupPage=yes
+          ; 自动匹配 Flutter 默认图标
+          SetupIconFile=resources\app_icon.ico
+          OutputDir=..\..\build\windows\installer
+          OutputBaseFilename=MClash_v{#MyAppVersion}_Windows_Setup
+          Compression=lzma2/ultra64
+          SolidCompression=yes
+          WizardStyle=modern
+
+          [Languages]
+          Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+          [Files]
+          ; 核心程序
+          Source: "{#MyBuildPath}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+          ; 依赖库及资源 (排除已经包含的主程序)
+          Source: "{#MyBuildPath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "{#MyAppExeName}"
+
+          [Icons]
+          Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+          Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+
+          [Run]
+          Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+          EOF
+
       - name: Build Installer (Inno Setup)
         run: |
           iscc /dMyAppVersion=${{ env.VERSION }} windows/runner/installer.iss
