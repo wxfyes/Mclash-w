@@ -1,0 +1,230 @@
+name: MClash Remote Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Source Branch/Tag (from wangn9900/Mclash)'
+        required: true
+        default: 'main'
+      build_android:
+        description: 'Build Android APK'
+        type: boolean
+        default: true
+      build_windows:
+        description: 'Build Windows App'
+        type: boolean
+        default: true
+      build_macos:
+        description: 'Build MacOS App'
+        type: boolean
+        default: true
+      upload_release:
+        description: 'Upload to Release (tianquege/MClash-TianQue)?'
+        type: boolean
+        default: true
+
+jobs:
+  # =================================================================================================
+  # 1. Android Build Job
+  # =================================================================================================
+  build-android:
+    if: ${{ github.event.inputs.build_android == 'true' }}
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from wangn9900
+        uses: actions/checkout@v4
+        with:
+          repository: wangn9900/Mclash
+          ref: ${{ github.event.inputs.branch }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Download Android Keystore
+        id: android_keystore
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: upload-keystore.jks
+          encodedString: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Create key.properties
+        run: |
+          echo "storeFile=${{ steps.android_keystore.outputs.filePath }}" > android/key.properties
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+
+      - name: Setup Android Kernel
+        run: |
+          gunzip android/app/src/main/jniLibs/arm64-v8a/mihomo.gz || true
+          gunzip android/app/src/main/jniLibs/armeabi-v7a/mihomo.gz || true
+          gunzip android/app/src/main/jniLibs/x86_64/mihomo.gz || true
+          mv android/app/src/main/jniLibs/arm64-v8a/mihomo android/app/src/main/jniLibs/arm64-v8a/libmihomo.so || true
+          mv android/app/src/main/jniLibs/armeabi-v7a/mihomo android/app/src/main/jniLibs/armeabi-v7a/libmihomo.so || true
+          mv android/app/src/main/jniLibs/x86_64/mihomo android/app/src/main/jniLibs/x86_64/libmihomo.so || true
+
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mclash-android-apks
+          path: build/app/outputs/flutter-apk/*.apk
+
+  # =================================================================================================
+  # 2. Windows Build Job
+  # =================================================================================================
+  build-windows:
+    if: ${{ github.event.inputs.build_windows == 'true' }}
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code from wangn9900
+        uses: actions/checkout@v4
+        with:
+          repository: wangn9900/Mclash
+          ref: ${{ github.event.inputs.branch }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Setup Windows Assets (Kernel & Rules)
+        run: |
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-windows-amd64-v1.19.24.zip -o assets/mihomo_win.zip
+          Expand-Archive -Path assets/mihomo_win.zip -DestinationPath assets/temp_win
+          Move-Item -Path assets/temp_win/mihomo-windows-amd64.exe -Destination assets/mihomo_TianQue.exe
+          Remove-Item -Path assets/mihomo_win.zip, assets/temp_win -Recurse
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
+        shell: powershell
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Package Windows
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath MClash-Windows-x64.zip
+        shell: powershell
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mclash-windows-release
+          path: MClash-Windows-x64.zip
+
+  # =================================================================================================
+  # 3. macOS Build Job
+  # =================================================================================================
+  build-macos:
+    if: ${{ github.event.inputs.build_macos == 'true' }}
+    name: Build MacOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code from wangn9900
+        uses: actions/checkout@v4
+        with:
+          repository: wangn9900/Mclash
+          ref: ${{ github.event.inputs.branch }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Setup MacOS Assets (Universal Kernel)
+        run: |
+          mkdir -p assets
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-darwin-amd64-v1.19.24.gz -o assets/mihomo_intel.gz
+          curl -L https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-darwin-arm64-v1.19.24.gz -o assets/mihomo_arm.gz
+          gunzip assets/mihomo_intel.gz
+          gunzip assets/mihomo_arm.gz
+          chmod +x assets/mihomo_intel assets/mihomo_arm
+          lipo -create assets/mihomo_intel assets/mihomo_arm -output assets/mihomo_TianQue
+          rm assets/mihomo_intel assets/mihomo_arm
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat -o assets/geoip.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat -o assets/geosite.dat
+          curl -L https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb -o assets/Country.mmdb
+
+      - name: Build MacOS
+        run: flutter build macos --release
+
+      - name: Package MacOS
+        run: |
+          cd build/macos/Build/Products/Release/
+          zip -r ../../../../MClash-MacOS-Universal.zip MClash.app
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mclash-macos-release
+          path: MClash-MacOS-Universal.zip
+
+  # =================================================================================================
+  # 4. Final Release Job
+  # =================================================================================================
+  publish-release:
+    if: ${{ always() && github.event.inputs.upload_release == 'true' }}
+    name: Publish Release to Public Repo
+    needs: [build-android, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from wangn9900
+        uses: actions/checkout@v4
+        with:
+          repository: wangn9900/Mclash
+          ref: ${{ github.event.inputs.branch }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+
+      - name: Extract Version
+        id: extract_version
+        run: |
+          VERSION=$(grep 'version:' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_artifacts
+
+      - name: Publish to Public Repository
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
+          owner: tianquege
+          repo: MClash-TianQue
+          tag: "v${{ env.VERSION }}"
+          name: "MClash v${{ env.VERSION }}"
+          body: "Automated Remote Release via wxfyes builder."
+          artifacts: |
+            release_artifacts/mclash-android-apks/*.apk
+            release_artifacts/mclash-windows-release/MClash-Windows-x64.zip
+            release_artifacts/mclash-macos-release/MClash-MacOS-Universal.zip
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: true
